@@ -1380,198 +1380,89 @@ body.is-ready .searchbar { animation-delay: .2s; }
 }
 
 .modal__banner.has-backdrop::before { opacity: 0; }
-/* ================================================================
-   VISUAL UPGRADE — compatibility-first overrides
-   These rules only enhance presentation. Existing HTML, IDs, data-* hooks,
-   backend forms, and JavaScript selectors remain unchanged.
-================================================================ */
 
-:root {
-  --shadow-soft: 0 10px 30px rgba(0, 0, 0, .16);
-  --shadow-deep: 0 24px 70px rgba(0, 0, 0, .28);
-  --glass: rgba(255, 255, 255, .045);
-  --line-glow: rgba(232, 184, 92, .28);
-  --ease-spring: cubic-bezier(.2, .8, .2, 1);
-}
+/* ============================================================ search bar v2 */
+.searchbar { position: relative; display: block; }
 
-html { scroll-behavior: smooth; }
-body { min-width: 320px; overflow-x: hidden; }
-::selection { background: var(--marigold); color: var(--on-accent); }
-
-/* Make the fixed background feel intentional instead of flat. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  opacity: .22;
+.searchbar__field {
+  width: 100%;
+  height: 60px;
+  padding: 0 92px 0 56px;
+  font-size: 1.06rem;
+  letter-spacing: .005em;
+  color: var(--text);
   background:
-    radial-gradient(circle at 10% 72%, rgba(82, 170, 154, .12), transparent 24rem),
-    radial-gradient(circle at 95% 78%, rgba(189, 82, 100, .10), transparent 22rem);
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)),
+    var(--surface);
+  border: 1px solid rgba(232,184,92,.34);
+  border-radius: 999px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 8px 26px rgba(0,0,0,.22);
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);
+  -webkit-appearance: none; appearance: none;
 }
-
-.masthead { box-shadow: 0 8px 24px rgba(0, 0, 0, .10); }
-.masthead__inner { position: relative; }
-.wordmark__text { text-shadow: 0 2px 24px rgba(232, 184, 92, .16); }
-
-.tab, .icon-btn, .chip, .royal-action, .btn, .mini-btn, .rail-toggle,
-.searchbar__clear, .account-switch, .shelf__all, .modal__close {
-  transition: color .2s var(--ease-spring), background-color .2s var(--ease-spring),
-    border-color .2s var(--ease-spring), box-shadow .2s var(--ease-spring),
-    transform .2s var(--ease-spring), opacity .2s var(--ease-spring);
+.searchbar__field::placeholder { color: var(--text-faint); opacity: 1; }
+.searchbar__field:hover { border-color: rgba(232,184,92,.6); }
+.searchbar__field:focus {
+  outline: none;
+  border-color: var(--marigold);
+  box-shadow: 0 0 0 4px rgba(232,184,92,.16), 0 12px 34px rgba(0,0,0,.3);
 }
+/* Native extras that fight the custom controls */
+.searchbar__field::-webkit-search-cancel-button,
+.searchbar__field::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+.searchbar__field::-webkit-calendar-picker-indicator { display: none !important; opacity: 0; }
 
-.tab { position: relative; }
-.tab[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: -5px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--marigold);
-  box-shadow: 0 0 12px rgba(232, 184, 92, .7);
+.searchbar__icon {
+  position: absolute; left: 22px; top: 50%; transform: translateY(-50%);
+  color: var(--text-faint); pointer-events: none;
+  transition: color .18s var(--ease);
 }
+.searchbar:focus-within .searchbar__icon,
+.searchbar.has-value .searchbar__icon { color: var(--marigold); }
 
-.hero { position: relative; }
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 20px;
-  left: -24px;
-  width: 3px;
-  height: 76px;
-  border-radius: 4px;
-  background: linear-gradient(var(--marigold), transparent);
-  opacity: .75;
+/* "/" shortcut hint: only while the field is empty and idle */
+.searchbar__hint {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%);
+  min-width: 26px; height: 26px; display: grid; place-items: center;
+  font: 600 .78rem/1 var(--font-body); color: var(--text-faint);
+  border: 1px solid var(--edge); border-bottom-width: 2px; border-radius: 6px;
+  background: rgba(255,255,255,.04); pointer-events: none;
+  transition: opacity .15s;
 }
-.hero__title { max-width: 14ch; text-wrap: balance; }
-.hero__lede { text-wrap: pretty; }
+.searchbar:focus-within .searchbar__hint,
+.searchbar.has-value .searchbar__hint { opacity: 0; }
 
-.stub {
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-soft);
-  transition: transform .25s var(--ease-spring), border-color .25s var(--ease-spring), box-shadow .25s var(--ease-spring);
+/* Clear: a round icon button that appears once there is text */
+.searchbar__clear {
+  position: absolute; right: 14px; top: 50%;
+  width: 32px; height: 32px; padding: 0; display: grid; place-items: center;
+  border-radius: 50%; color: var(--text-dim);
+  background: rgba(255,255,255,.08);
+  opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.7);
+  transition: opacity .15s, transform .15s var(--ease), background .15s, color .15s;
 }
-.stub::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.08), transparent 70%);
-  transform: translateX(-120%);
-  transition: transform .7s var(--ease-spring);
+.searchbar.has-value .searchbar__clear { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+.searchbar__clear:hover { background: var(--vermilion); color: #fff; }
+
+:root[data-theme="light"] .searchbar__field {
+  background: var(--surface-2);
+  box-shadow: 0 1px 2px rgba(29,26,38,.06), 0 8px 22px rgba(29,26,38,.07);
+  border-color: rgba(181,115,10,.4);
 }
-.stub:hover { transform: translateY(-3px); border-color: var(--marigold); box-shadow: var(--shadow-deep); }
-.stub:hover::after { transform: translateX(120%); }
-
-.searchbar__field, .field input, .field select, select, .account-drawer input {
-  min-height: 44px;
-  -webkit-appearance: none;
-  appearance: none;
+:root[data-theme="light"] .searchbar__field:focus {
+  box-shadow: 0 0 0 4px rgba(181,115,10,.16), 0 10px 26px rgba(29,26,38,.1);
 }
-.searchbar__field { letter-spacing: .01em; }
-.searchbar__field:hover, .field input:hover, .field select:hover, select:hover { border-color: color-mix(in srgb, var(--marigold) 60%, var(--edge)); }
+:root[data-theme="light"] .searchbar__hint,
+:root[data-theme="light"] .searchbar__clear { background: rgba(29,26,38,.06); }
 
-.chip:hover, .royal-action:hover { box-shadow: 0 6px 18px rgba(232, 184, 92, .14); }
-.chip[aria-pressed="true"] { box-shadow: 0 5px 18px rgba(232, 184, 92, .18); }
-
-.workbench { align-items: start; }
-.rail {
-  scrollbar-width: thin;
-  scrollbar-color: var(--edge) transparent;
-}
-.rail__group {
-  padding: 13px 12px;
-  border: 1px solid rgba(255,255,255,.055);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(145deg, rgba(255,255,255,.035), transparent);
-}
-
-.results__bar { min-height: 42px; }
-.grid { align-items: stretch; }
-.card {
-  isolation: isolate;
-  box-shadow: var(--shadow-soft);
-  transform: translateY(0);
-}
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 44px rgba(0,0,0,.28), 0 0 0 1px rgba(232,184,92,.12);
-}
-.card:focus-within { border-color: var(--marigold); box-shadow: 0 0 0 3px rgba(232,184,92,.12), var(--shadow-soft); }
-.poster { background-color: var(--surface-2); }
-.poster::before { transition: transform .5s var(--ease-spring), filter .5s var(--ease-spring); }
-.card:hover .poster::before { transform: scale(1.05); filter: saturate(1.12); }
-.poster__score, .poster__lang { backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.12); }
-.card__body { min-height: 150px; }
-.card__meta strong, .card__genres strong { color: var(--text); }
-.mini-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,184,92,.12); }
-
-.section { scroll-margin-top: 96px; }
-.seed-panel, .taste__card, .chart-card, .compare-col {
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(12px);
-}
-.seed-panel:hover, .chart-card:hover, .compare-col:hover { border-color: var(--line-glow); }
-
-.btn { box-shadow: 0 6px 16px rgba(232,184,92,.12); }
-.btn:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(232,184,92,.2); }
-.btn:active, .royal-action:active, .mini-btn:active { transform: translateY(0); }
-.btn--ghost { box-shadow: none; }
-
-.theme-bar__track, .signal__track, .bar__track { box-shadow: inset 0 1px 3px rgba(0,0,0,.22); }
-.theme-bar__fill, .signal__fill, .bar__fill { box-shadow: 0 0 10px rgba(232,184,92,.22); }
-
-.empty { background: linear-gradient(145deg, rgba(255,255,255,.035), transparent); }
-.empty h3 { text-wrap: balance; }
-
-.modal { box-shadow: var(--shadow-deep); }
-.modal__banner { min-height: 205px; }
-.modal__body { background: linear-gradient(180deg, rgba(255,255,255,.018), transparent 18rem); }
-.modal__close:hover { transform: rotate(90deg); }
-.fact { padding: 9px 10px; border-radius: var(--radius); background: rgba(255,255,255,.025); }
-
-.toast { backdrop-filter: blur(14px); }
-.account-drawer { backdrop-filter: blur(18px); }
-
-.shelf__track { scrollbar-color: var(--edge) transparent; }
-.shelf__track .card { transition: transform .25s var(--ease-spring), box-shadow .25s var(--ease-spring); }
-.shelf__track .card:hover { transform: translateY(-5px); }
-.media__poster { border: 1px solid rgba(255,255,255,.12); }
-
-/* Light theme keeps the same hierarchy with softer shadows and clearer edges. */
-:root[data-theme="light"] body::after { opacity: .12; }
-:root[data-theme="light"] .masthead { box-shadow: 0 8px 24px rgba(54, 39, 19, .08); }
-:root[data-theme="light"] .stub,
-:root[data-theme="light"] .card,
-:root[data-theme="light"] .seed-panel,
-:root[data-theme="light"] .taste__card,
-:root[data-theme="light"] .chart-card,
-:root[data-theme="light"] .compare-col { box-shadow: 0 10px 24px rgba(54, 39, 19, .08); }
-:root[data-theme="light"] .card:hover { box-shadow: 0 18px 34px rgba(54, 39, 19, .14); }
-
-@media (max-width: 900px) {
-  .hero::before { left: -10px; }
-  .rail__group { padding: 12px; }
-  .tab[aria-selected="true"]::after { bottom: -2px; }
-}
-
+@media (hover: none), (max-width: 900px) { .searchbar__hint { display: none; } }
 @media (max-width: 560px) {
-  .hero::before { display: none; }
-  .hero__title { max-width: 12ch; }
-  .hero__head { gap: 20px; }
-  .stubs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
-  .stub { min-width: 0; }
-  .card__body { min-height: 138px; padding: 10px; }
-  .card__desc { font-size: .74rem; }
-  .modal__banner { min-height: 160px; }
+  .searchbar__field { height: 54px; font-size: 1rem; padding: 0 58px 0 48px; }
+  .searchbar__icon { left: 18px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .stub::after { display: none; }
-}
+/* ============================================================ logo link */
+a.wordmark { color: inherit; text-decoration: none; cursor: pointer; border-radius: 8px; }
+a.wordmark:hover .wordmark__lamp { box-shadow: 0 0 0 4px rgba(232,184,92,.25), 0 0 26px rgba(232,184,92,.4); }
+a.wordmark:hover .wordmark__text { color: var(--marigold); }
+a.wordmark:focus-visible { outline: 2px solid var(--marigold); outline-offset: 4px; }
