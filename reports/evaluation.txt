@@ -1,0 +1,4 @@
+HEADLINE (k=10)
+----------------------------------------------------------------------------------
+mmr lambda            genre P@k  theme ovl  dir recall diversity  coverage  
+1.0                   0.9658     0.0429     0.9375     0.9466     1.0       

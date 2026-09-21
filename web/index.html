@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hoarding — a film recommender</title>
+<meta name="description"
+      content="Content-based film recommender over a 184-film world cinema
+               catalogue, with NLP search, taste profiles and explanations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800&display=swap"
+      rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="royal-ribbon" aria-hidden="true">
+  <span>THE ROYAL REEL</span>
+  <i></i>
+  <span>CURATED DISCOVERY · EST. 2024</span>
+</div>
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <div class="wordmark">
+      <span class="wordmark__lamp" aria-hidden="true">♛</span>
+      <span>
+        <span class="wordmark__text">Hoarding</span>
+        <span class="wordmark__sub">film recommender</span>
+      </span>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" data-tab="discover" aria-selected="true">Discover</button>
+      <button class="tab" role="tab" data-tab="recommend" aria-selected="false">Similar films</button>
+      <button class="tab" role="tab" data-tab="foryou" aria-selected="false">For you</button>
+      <button class="tab" role="tab" data-tab="explore" aria-selected="false">Explore</button>
+      <button class="tab" role="tab" data-tab="compare" aria-selected="false">Compare</button>
+      <button class="tab" role="tab" data-tab="watchlist" aria-selected="false">
+        Watchlist <span class="pill-count" id="watch-count">0</span>
+      </button>
+    </nav>
+
+    <div class="masthead__tools">
+      <button class="icon-btn account-btn" id="account-btn" data-act="account"
+              title="Sync your royal collection" aria-label="Account">♙</button>
+      <button class="icon-btn" id="surprise-btn" data-act="surprise"
+              title="Show me anything (press r)" aria-label="Surprise me">&#9733;</button>
+      <button class="icon-btn" id="theme-toggle"
+              title="Switch light and dark" aria-label="Switch theme">&#9681;</button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ===================================================== discover -->
+  <section class="panel" data-panel="discover">
+    <div class="hero">
+      <div class="hero__head">
+        <div>
+          <div class="hero__eyebrow"><span class="crown-mark">✦</span> Your private cinema concierge</div>
+          <h1 class="hero__title">What are you in the mood for?</h1>
+          <p class="hero__lede">
+            Describe a feeling, a theme, a director, or just a title. The
+            search reads meaning, not only words — try “mind bending space”
+            or “funny bollywood college”.
+          </p>
+        </div>
+        <div class="stubs">
+          <div class="stub">
+            <div class="stub__num" id="stat-films">0</div>
+            <div class="stub__label">films</div>
+          </div>
+          <div class="stub">
+            <div class="stub__num" id="stat-languages">0</div>
+            <div class="stub__label">languages</div>
+          </div>
+          <div class="stub">
+            <div class="stub__num" id="stat-genres">0</div>
+            <div class="stub__label">genres</div>
+          </div>
+          <div class="stub">
+            <div class="stub__num" id="stat-years" style="font-size:1.15rem">—</div>
+            <div class="stub__label">years covered</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__actions" aria-label="Curated searches">
+        <span class="hero__actions-label">Begin with a feeling</span>
+        <button class="royal-action" data-act="search-term" data-term="mind bending space">Mind-bending</button>
+        <button class="royal-action" data-act="search-term" data-term="funny bollywood college">Joyful &amp; bold</button>
+        <button class="royal-action" data-act="search-term" data-term="scary survival">Edge of seat</button>
+      </div>
+
+      <div class="searchbar">
+        <span class="searchbar__glyph" aria-hidden="true">&#9906;</span>
+        <label class="visually-hidden" for="search">Search films</label>
+        <input class="searchbar__field" id="search" type="search"
+               list="film-list" autocomplete="off"
+               placeholder="Title, genre, mood or actor">
+        <button class="searchbar__clear" id="search-clear">Clear</button>
+      </div>
+      <div class="matched-note" id="matched-note" aria-live="polite"></div>
+
+      <div class="genre-bar" id="genre-bar" role="group" aria-label="Browse by genre"></div>
+      <div class="chip-row" id="mood-chips" aria-label="Moods"></div>
+    </div>
+
+    <button class="rail-toggle" id="rail-toggle">Filters</button>
+
+    <div class="workbench">
+      <aside class="rail" id="rail" data-open="false" aria-label="Filters"></aside>
+
+      <div>
+        <div class="results__bar">
+          <span class="results__count" id="discover-count"></span>
+          <div class="results__tools">
+            <button class="btn btn--ghost btn--small" id="view-toggle" data-act="toggle-view" hidden></button>
+            <label class="visually-hidden" for="sort">Sort by</label>
+            <select id="sort">
+              <option value="relevance">Best match</option>
+              <option value="rating">Highest rated</option>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="shortest">Shortest first</option>
+              <option value="title">A to Z</option>
+            </select>
+          </div>
+        </div>
+        <div id="discover-results"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================================================== recommend -->
+  <section class="panel" data-panel="recommend" hidden>
+    <div class="hero">
+      <h1 class="hero__title">Films like the one you loved</h1>
+      <p class="hero__lede">
+        Name a film and you'll get its closest relatives, each tagged with
+        what it shares — a theme, a director, a genre, an era.
+      </p>
+    </div>
+
+    <div class="seed-panel">
+      <div class="seed-panel__row">
+        <div class="field">
+          <label for="seed-input">Start from</label>
+          <input id="seed-input" list="film-list" autocomplete="off"
+                 placeholder="e.g. Inception, 3 Idiots, Parasite">
+        </div>
+        <div class="field">
+          <label for="lambda">
+            Variety <output id="out-lambda">balanced</output>
+          </label>
+          <input type="range" id="lambda" min="0.3" max="1" step="0.05" value="0.75">
+        </div>
+        <div class="field mode-field">
+          <label for="recommend-mode">Recommendation mode</label>
+          <select id="recommend-mode">
+            <option value="closest">Closest match</option>
+            <option value="hidden">Hidden gems</option>
+            <option value="comfort">Comfort watch</option>
+            <option value="challenge">Challenge me</option>
+            <option value="royal">Royal premiere</option>
+            <option value="short">Under two hours</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:0.76rem;color:var(--text-faint);margin:10px 0 0">
+        Variety controls how much the list is allowed to repeat itself. Turn it
+        down and you'll get fewer sequels and more genuine alternatives.
+      </p>
+    </div>
+
+    <div id="seed-summary"></div>
+    <div id="recommend-results"></div>
+  </section>
+
+  <!-- ======================================================= for you -->
+  <section class="panel" data-panel="foryou" hidden>
+    <div class="hero">
+      <h1 class="hero__title">Built from what you like</h1>
+      <p class="hero__lede">
+        Every film you like moves your profile toward it; every rejection
+        pushes it away. The bars on the right are what the profile is made of.
+      </p>
+    </div>
+
+    <div class="taste">
+      <div id="foryou-results"></div>
+      <aside class="taste__card" id="taste-readout"></aside>
+    </div>
+  </section>
+
+  <!-- ======================================================= explore -->
+  <section class="panel" data-panel="explore" hidden>
+    <div class="hero">
+      <h1 class="hero__title">What's in the catalogue</h1>
+      <p class="hero__lede">
+        The shape of the collection — and a set of ready-made shelves to
+        browse, assembled from the data itself.
+      </p>
+    </div>
+    <div class="chart-grid" id="explore-charts"></div>
+    <div id="collections"></div>
+  </section>
+
+  <!-- ======================================================= compare -->
+  <section class="panel" data-panel="compare" hidden>
+    <div class="hero">
+      <h1 class="hero__title">How alike are two films?</h1>
+      <p class="hero__lede">
+        Put two titles side by side and see the score broken into the four
+        signals that produce it.
+      </p>
+    </div>
+
+    <div class="seed-panel">
+      <div class="seed-panel__row">
+        <div class="field">
+          <label for="cmp-a">First film</label>
+          <input id="cmp-a" list="film-list" autocomplete="off" placeholder="e.g. Inception">
+        </div>
+        <div class="field">
+          <label for="cmp-b">Second film</label>
+          <input id="cmp-b" list="film-list" autocomplete="off" placeholder="e.g. The Matrix">
+        </div>
+      </div>
+    </div>
+
+    <div id="compare-body"></div>
+  </section>
+
+  <!-- ===================================================== watchlist -->
+  <section class="panel" data-panel="watchlist" hidden>
+    <div class="hero">
+      <div class="hero__head">
+        <div>
+          <h1 class="hero__title">Saved for later</h1>
+          <p class="hero__lede">
+            <span id="watchlist-count-label">0 films saved</span> —
+            <span id="watchlist-time"></span>
+          </p>
+        </div>
+        <button class="btn btn--ghost" id="export-watchlist">Download as CSV</button>
+      </div>
+    </div>
+    <div id="watchlist-results"></div>
+  </section>
+
+</main>
+
+<datalist id="film-list"></datalist>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true"
+       aria-label="Film details">
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<aside class="account-drawer" id="account-drawer" hidden aria-label="Account sync">
+  <button class="account-drawer__close" id="account-close" aria-label="Close account panel">×</button>
+  <div class="hero__eyebrow">♛ The Royal Collection</div>
+  <h2 id="account-title">Sync your collection</h2>
+  <p class="account-copy">Create an account to carry your watchlist, likes, dislikes, and recent films across devices.</p>
+  <form id="account-form">
+    <label>Username<input id="account-username" autocomplete="username" required minlength="3"></label>
+    <label>Password<input id="account-password" type="password" autocomplete="current-password" required minlength="6"></label>
+    <button class="btn" type="submit" id="account-submit">Sign in</button>
+  </form>
+  <button class="account-switch" id="account-switch" type="button">Need an account? Create one</button>
+  <div class="account-status" id="account-status"></div>
+</aside>
+
+<footer class="colophon">
+  <span id="colophon-meta"></span>
+  <span id="colophon-metrics"></span>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/tmdb.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
