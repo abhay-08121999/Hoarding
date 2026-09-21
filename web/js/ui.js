@@ -1280,6 +1280,7 @@
     $("#watch-count").style.visibility = state.watchlist.length ? "visible" : "hidden";
 
     syncFacetInputs();
+    syncSearchUI();
 
     if (state.tab === "discover") renderDiscover();
     if (state.tab === "recommend") renderRecommend();
@@ -1289,6 +1290,29 @@
     if (state.tab === "watchlist") renderWatchlist();
 
     hydratePosters();
+  }
+
+  /* Clicking the logo: back to a clean Discover landing view. Ratings, the
+     watchlist and the theme are kept - only the browsing state resets. */
+  function goHome() {
+    closeModal();
+    $("#account-drawer").hidden = true;
+    state.tab = "discover";
+    state.query = "";
+    state.sort = "relevance";
+    state.showAll = false;
+    state.matched = [];
+    state.railOpen = false;
+    $("#rail").dataset.open = "false";
+    $("#search").value = "";
+    $("#sort").value = "relevance";
+    resetFilters();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function syncSearchUI() {
+    $("#searchbar").classList.toggle("has-value", $("#search").value.length > 0);
   }
 
   /* ------------------------------------------------------------- events */
@@ -1397,6 +1421,12 @@
       return;
     }
 
+    if (act === "home") {
+      if (ev.preventDefault) ev.preventDefault();
+      goHome();
+      return;
+    }
+
     if (act === "see-genre") {
       state.filters.genres = [btn.dataset.genre];
       state.query = "";
@@ -1461,6 +1491,7 @@
 
     let debounce;
     $("#search").addEventListener("input", (ev) => {
+      syncSearchUI();
       clearTimeout(debounce);
       const value = ev.target.value;
       debounce = setTimeout(() => {
