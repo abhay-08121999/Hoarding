@@ -23,13 +23,13 @@
 
 <header class="masthead">
   <div class="masthead__inner">
-    <div class="wordmark">
+    <a class="wordmark" href="./" data-act="home" title="Back to home" aria-label="Hoarding — back to home">
       <span class="wordmark__lamp" aria-hidden="true">♛</span>
       <span>
         <span class="wordmark__text">Hoarding</span>
         <span class="wordmark__sub">film recommender</span>
       </span>
-    </div>
+    </a>
 
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" data-tab="discover" aria-selected="true">Discover</button>
@@ -95,13 +95,22 @@
         <button class="royal-action" data-act="search-term" data-term="scary survival">Edge of seat</button>
       </div>
 
-      <div class="searchbar">
-        <span class="searchbar__glyph" aria-hidden="true">&#9906;</span>
+      <div class="searchbar" id="searchbar" role="search">
+        <svg class="searchbar__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
         <label class="visually-hidden" for="search">Search films</label>
         <input class="searchbar__field" id="search" type="search"
-               list="film-list" autocomplete="off"
+               list="film-list" autocomplete="off" spellcheck="false"
+               enterkeyhint="search"
                placeholder="Title, genre, mood or actor">
-        <button class="searchbar__clear" id="search-clear">Clear</button>
+        <kbd class="searchbar__hint" aria-hidden="true">/</kbd>
+        <button class="searchbar__clear" id="search-clear" type="button" aria-label="Clear search">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M6 6 18 18M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
       <div class="matched-note" id="matched-note" aria-live="polite"></div>
 
