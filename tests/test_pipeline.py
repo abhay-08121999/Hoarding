@@ -12,7 +12,8 @@ non-empty.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 
 from src.data_loader import build_clean_frame
 from src.features import build_feature_space
@@ -254,6 +255,97 @@ def test_search_language_and_decade_words():
     assert nineties and all(
         1990 <= rec.df.loc[rec.index_of(r.movie_id), "year"] < 2000 for r in nineties
     )
+
+
+# ------------------------------------------------------ catalogue growth
+def _fake_tmdb(**over):
+    d = {
+        "id": 501, "title": "Sample Film", "release_date": "2019-05-03", "adult": False,
+        "overview": "A long enough synopsis for the importer to keep this film.",
+        "vote_average": 7.44, "vote_count": 900, "runtime": 118,
+        "genres": [{"name": "Science Fiction"}, {"name": "TV Movie"}, {"name": "Drama"}],
+        "original_language": "hi", "poster_path": "/abc.jpg",
+        "production_countries": [{"name": "India"}, {"name": "United States of America"}],
+        "credits": {"cast": [{"name": "B", "order": 1}, {"name": "A", "order": 0}],
+                    "crew": [{"job": "Director", "name": "Dee"}, {"job": "Editor", "name": "X"}]},
+        "keywords": {"keywords": [{"name": "independent film"}, {"name": "family"}]},
+        "release_dates": {"results": [
+            {"iso_3166_1": "US", "release_dates": [{"certification": "PG-13"}]},
+            {"iso_3166_1": "IN", "release_dates": [{"certification": "UA"}]}]},
+    }
+    d.update(over)
+    return d
+
+
+def _importer():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("import_tmdb", ROOT / "tools" / "import_tmdb.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_importer_maps_tmdb_onto_workbook_schema():
+    imp = _importer()
+    row = imp.to_row(_fake_tmdb(), tags={"independent"})
+    assert row["Genres"] == "Sci-Fi|Drama"          # renamed; TV Movie dropped
+    assert row["Language"] == "Hindi" and row["Country"] == "India"
+    assert row["Age Rating"] == "U/A"                # India's board for Indian films
+    assert row["Cast"] == "A|B" and row["Director"] == "Dee"
+    assert row["Rating"] == 7.4 and row["TMDB ID"] == 501
+    assert row["Poster Path"] == "/abc.jpg" and row["Collections"] == "independent"
+    assert imp.to_row(_fake_tmdb(production_countries=[{"name": "United States of America"}],
+                                 original_language="en"))["Age Rating"] == "PG-13"
+
+
+def test_importer_skips_unusable_records():
+    imp = _importer()
+    assert imp.to_row(_fake_tmdb(adult=True)) is None
+    assert imp.to_row(_fake_tmdb(overview="short")) is None
+    assert imp.to_row(_fake_tmdb(runtime=20)) is None            # a short film
+    assert imp.to_row(_fake_tmdb(vote_average=0)) is None
+    assert imp.to_row(_fake_tmdb(release_date="")) is None
+    assert imp.to_row(_fake_tmdb(runtime=20, genres=[{"name": "Documentary"}])) is not None
+
+
+def test_collections_are_derived_from_language_country_and_genre():
+    from src.data_loader import derive_collections
+    base = {"language": "", "country": "", "genres": [], "keyword_list": []}
+    assert derive_collections({**base, "language": "Tamil", "country": "India"}) == [
+        "Indian cinema", "Regional-language"]
+    assert derive_collections({**base, "language": "Hindi", "country": "India"}) == ["Indian cinema"]
+    assert derive_collections({**base, "language": "Korean", "country": "South Korea"}) == ["Korean cinema"]
+    assert derive_collections({**base, "language": "French", "country": "France"}) == ["European cinema"]
+    assert derive_collections({**base, "language": "Japanese", "genres": ["Animation"]}) == ["Anime"]
+    assert derive_collections({**base, "genres": ["Documentary"]}) == ["Documentaries"]
+    assert derive_collections(base, tags=["Independent"]) == ["Independent"]
+
+
+def test_saved_ids_survive_importing_more_films():
+    """Likes and watchlists are keyed by movie_id: adding films must not renumber."""
+    import shutil, tempfile
+    import pandas as pd
+    from src import config
+    from src.data_loader import build_clean_frame
+    baseline = build_clean_frame()
+    with tempfile.TemporaryDirectory() as tmp:
+        for f in config.RAW_DIR.glob("*.xlsx"):
+            shutil.copy(f, tmp)
+        imp = _importer()
+        rows = [imp.to_row(_fake_tmdb(id=900 + i, title=f"Zed Film {i}"), set()) for i in range(3)]
+        # one imported row duplicates a hand-built film and must merge into it
+        first = baseline.iloc[0]
+        rows.append(imp.to_row(_fake_tmdb(id=999, title=first["title"],
+                                          release_date=f"{int(first['year'])}-01-01"), set()))
+        pd.DataFrame(rows).to_excel(Path(tmp) / "tmdb_import.xlsx", index=False)
+        grown = build_clean_frame(Path(tmp))
+    assert len(grown) == len(baseline) + 3
+    old = dict(zip(zip(baseline["title"], baseline["year"]), baseline["movie_id"]))
+    new = dict(zip(zip(grown["title"], grown["year"]), grown["movie_id"]))
+    assert all(new[k] == v for k, v in old.items())
+    assert sorted(grown[grown["movie_id"].str.startswith("t")]["movie_id"]) == ["t900", "t901", "t902"]
+    merged = grown[grown["title"] == first["title"]].iloc[0]
+    assert merged["tmdb_id"] == 999                      # picked up the TMDB link
 
 
 # ------------------------------------------------------- taste profiles
